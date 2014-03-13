@@ -64,14 +64,17 @@ curl -XPUT 'http://localhost:9200/phillydevops/' -d '{
 ```
 
 Now, when going to [http://localhost:9200/_plugin/head/](http://localhost:9200/_plugin/head/), you should see something like this, with five shards assigned to the node you created and five shards unassigned to any node.
+
 ![5 shards unassigned](./images/elasticsearch-unassigned-shards.png?raw=true)
 
 ### Running more nodes
 
 We created our index with more shards than we have servers. What's great about Elasticsearch, is that it's very easy to add another node and have our data be balanced among the servers available to the cluster. Let's bring up another Elasticsearch server by running `docker run -d devops-es`. After a few seconds, we can refresh [http://localhost:9200/_plugin/head/](http://localhost:9200/_plugin/head/) and see our new server has been assigned all the previous shards automatically!
+
 ![All shards assigned](./images/elasticsearch-all-shards-assigned.png?raw=true)
 
-If we run `docker run -d devops-es` two more times, you can see how all the shards balance out. 
+If we run `docker run -d devops-es` two more times, you can see how all the shards balance out.
+
 ![Four nodes running](./images/elasticsearch-four-nodes-running.png?raw=true)
 
 In production, this process will take much longer depending on how much data you have, but it's still generally that easy to do. 
