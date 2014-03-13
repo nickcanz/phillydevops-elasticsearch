@@ -96,12 +96,76 @@ curl http://localhost:5984 # Response: {"couchdb":"Welcome","uuid":"6c1beddeb3b7
 
 ### Creating a Couchdb database
 
-We can now create a Couchdb database and put some documents into Couchdb. 
+We can now create a Couchdb database and put some documents into Couchdb. Running `bash create-couch-data.sh` will create the Couchdb database and fill it with some data drawn from the Meetup API. You can get the data using a curl call.
 
 ```bash
-# Create a database with the name phillydevops
-curl -XPUT http://localhost:5984/phillydevops # Resonse: {"ok":true}
 
-# Put Documents into Couchdb
-# stuff here
+curl http://localhost:5984/phillydevops/_all_docs
+
+#And you should see a response like
+{
+  "total_rows":15,
+  "offset":0,
+  "rows":[
+    {"id":"b0e1336bb433194e25779c840a0115c9","key":"b0e1336bb433194e25779c840a0115c9","value":{"rev":"1-f86a906ea0b22e9b04aa76ce1557e0fc"}},
+    {"id":"b0e1336bb433194e25779c840a012578","key":"b0e1336bb433194e25779c840a012578","value":{"rev":"1-d3e5c535bd65b741b7824d293e4741e0"}},
+    {"id":"b0e1336bb433194e25779c840a01337a","key":"b0e1336bb433194e25779c840a01337a","value":{"rev":"1-732e9d4a6bff9f4ce95d55231c476c13"}},
+    {"id":"b0e1336bb433194e25779c840a01379b","key":"b0e1336bb433194e25779c840a01379b","value":{"rev":"1-020c9a8886d24c95f428ba270322205d"}},
+    {"id":"b0e1336bb433194e25779c840a013d03","key":"b0e1336bb433194e25779c840a013d03","value":{"rev":"1-978899db1e0bc289866cba86e9037627"}},
+    {"id":"b0e1336bb433194e25779c840a014c33","key":"b0e1336bb433194e25779c840a014c33","value":{"rev":"1-c2cca793558e1b3ca50c0dcba823b82b"}},
+    {"id":"b0e1336bb433194e25779c840a014ef0","key":"b0e1336bb433194e25779c840a014ef0","value":{"rev":"1-eea247051aba145f9b50a78c2bfaf8b5"}},
+    {"id":"b0e1336bb433194e25779c840a01593f","key":"b0e1336bb433194e25779c840a01593f","value":{"rev":"1-5c11f3c95479cbe0f621ab37f957ac2a"}},
+    {"id":"b0e1336bb433194e25779c840a015c85","key":"b0e1336bb433194e25779c840a015c85","value":{"rev":"1-58f87d60e6e9f1e5499d163aaab2fa12"}},
+    {"id":"b0e1336bb433194e25779c840a01619a","key":"b0e1336bb433194e25779c840a01619a","value":{"rev":"1-787b1a4ac822012122d442ad6909c9d2"}},
+    {"id":"b0e1336bb433194e25779c840a01678a","key":"b0e1336bb433194e25779c840a01678a","value":{"rev":"1-f6dfecb91fc15710db810758f672472e"}},
+    {"id":"b0e1336bb433194e25779c840a016c98","key":"b0e1336bb433194e25779c840a016c98","value":{"rev":"1-01b0539969853f1fd4e9ce0c21409a91"}},
+    {"id":"b0e1336bb433194e25779c840a016fcd","key":"b0e1336bb433194e25779c840a016fcd","value":{"rev":"1-fad41ffc3e50673980b32a95dd409e9c"}},
+    {"id":"b0e1336bb433194e25779c840a017296","key":"b0e1336bb433194e25779c840a017296","value":{"rev":"1-7cf01c54057a327bd2ecca8af0032c9a"}},
+    {"id":"b0e1336bb433194e25779c840a0176dd","key":"b0e1336bb433194e25779c840a0176dd","value":{"rev":"1-ab23624314187e989e5874cb8cdba6ef"}}
+  ]
+}
+```
+
+### Streaming the data from Couchdb to Elasticsearch
+
+To create the Elasticsearch river, we need to know the IP address of the docker container running Couchdb.
+
+```bash
+docker ps | grep 'klaemo/couchdb' | cut -f1 -d' ' | xargs docker inspect | grep IPAddress
+  
+#Should return something like
+"IPAddress": "172.17.0.6",
+```
+
+Edit the `create-river.sh` file to put the IP address into the couchdb host field. My script looks like the following.
+
+```bash
+curl -XDELETE http://localhost:9200/_river/phillydevops
+curl -XPOST http://localhost:9200/_river/phillydevops/_meta -d '{
+  "type": "couchdb",
+  "couchdb": {
+    "host" : "COUCHDB IP ADDRESS HERE", #Put "172.17.0.6" here
+    "port" : 5984,
+    "db" : "phillydevops",
+    "filter": null
+  },
+  "index" : {
+    "index" : "phillydevops",
+    "type" : "meeting",
+    "bulk_size" : "10",
+    "bulk_timeout" : "100ms"
+  }
+}'
+```
+
+You can now execute the `create-river.sh` file and data should start flowing from Couchdb to Elasticsearch. Verify documents are in Elasticsearch:
+
+```bash
+curl http://localhost:9200/phillydevops/_count #{"count":0,"_shards":{"total":5,"successful":5,"failed":0}}
+bash create-river.sh
+curl http://localhost:9200/phillydevops/_count #{"count":15,"_shards":{"total":5,"successful":5,"failed":0}}
+
+#Put some more documents in Couchdb
+bash meetings.data
+curl http://localhost:9200/phillydevops/_count #{"count":30,"_shards":{"total":5,"successful":5,"failed":0}}
 ```
