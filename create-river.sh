@@ -2,7 +2,7 @@ curl -XDELETE http://localhost:9200/_river/phillydevops
 curl -XPOST http://localhost:9200/_river/phillydevops/_meta -d '{
   "type": "couchdb",
   "couchdb": {
-    "host" : "COUCHDB IP ADDRESS HERE",
+    "host" : "172.17.0.6",
     "port" : 5984,
     "db" : "phillydevops",
     "filter": null

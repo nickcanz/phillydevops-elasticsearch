@@ -1,8 +1,4 @@
-#
 # ElasticSearch Dockerfile
-#
-# https://github.com/dockerfile/elasticsearch
-#
 
 # Pull base image.
 FROM dockerfile/java
@@ -15,13 +11,10 @@ RUN rm elasticsearch-1.0.1.tar.gz
 
 # Set cluster name
 RUN echo 'cluster.name : elasticsearch-docker' >> /opt/elasticsearch/config/elasticsearch.yml
+RUN echo 'node.data : false' >> /opt/elasticsearch/config/elasticsearch.yml
 
 RUN sed -i 's/es\.logger\.level\: INFO/es\.logger\.level\: DEBUG/' /opt/elasticsearch/config/logging.yml
-#RUN echo 'rootLogger: ${es.logger.level}, console, file' >> /etc/elasticsearch/logging.yml
-#RUN echo 'logger:' >> /etc/elasticsearch/logging.yml
-#RUN echo '  action: DEBUG' >> /etc/elasticsearch/logging.yml
-#RUN echo '  com.amazonaws: WARN' >> /etc/elasticsearch/logging.yml
-#
+
 RUN /opt/elasticsearch/bin/plugin -install mobz/elasticsearch-head
 RUN /opt/elasticsearch/bin/plugin -install elasticsearch/elasticsearch-lang-javascript/2.0.0.RC1
 RUN /opt/elasticsearch/bin/plugin -install elasticsearch/elasticsearch-river-couchdb/2.0.0

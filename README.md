@@ -4,9 +4,11 @@ phillydevops-elasticsearch
 ## Installation and setup
 
 1. Install [Docker](https://www.docker.io/gettingstarted/#h_installation). On OSX, I'm using [boot2docker](http://docs.docker.io/en/latest/installation/mac/#boot2docker). For verification, `docker version` should return a version.
-1. Build the custom elasticsearch docker image, with a tag of `devops-es`.
+1. Build the custom elasticsearch docker images, by running `build-docker-images.sh`, which contains:
     ```
-    docker build -t devops-es elasticsearch-dockerfile/.
+    docker build -t es - < Dockerfile-es
+    docker build -t es-data - < Dockerfile-es-data
+    docker build -t es-lb - < Dockerfile-es-lb
     ```
 1. Pull down the couchdb docker image
     ```
@@ -16,10 +18,10 @@ phillydevops-elasticsearch
 ## Run an Elasticsearch instance
 
 ### Start the container
-Execute `docker run -d -p 9200:9200 devops-es`
+Execute `docker run -d -p 9200:9200 es`
 * `-d` will run the container in the background
 * `-p 9200:9200` will forward port 9200 from the container to the host
-* `devops-es` is the name of the image we want to run. In this case, it is a name of a tag.
+* `es` is the name of the image we want to run. In this case, it is a name of a tag.
 
 ### Verfiy it's running
 
@@ -67,7 +69,7 @@ Now, when going to [http://localhost:9200/_plugin/head/](http://localhost:9200/_
 
 ![5 shards unassigned](./images/elasticsearch-unassigned-shards.png?raw=true)
 
-### Running more nodes
+## Running an Elasticsearch cluster
 
 We created our index with more shards than we have servers. What's great about Elasticsearch, is that it's very easy to add another node and have our data be balanced among the servers available to the cluster. Let's bring up another Elasticsearch server by running `docker run -d devops-es`. After a few seconds, we can refresh [http://localhost:9200/_plugin/head/](http://localhost:9200/_plugin/head/) and see our new server has been assigned all the previous shards automatically!
 

@@ -1,0 +1,10 @@
+- explain dockerfile
+  - difference between load balancer and data node
+  - explain 1.0.1 versioning
+  - explain cluster setting
+  - explain plugin system
+- explain how shards work / what they are
+
+- elastic search as a primary data store
+
+- Problems we've had with Cloudant/Couchdb _changes feeds
