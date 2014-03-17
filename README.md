@@ -71,11 +71,11 @@ Now, when going to [http://localhost:9200/_plugin/head/](http://localhost:9200/_
 
 ## Running an Elasticsearch cluster
 
-We created our index with more shards than we have servers. What's great about Elasticsearch, is that it's very easy to add another node and have our data be balanced among the servers available to the cluster. Let's bring up another Elasticsearch server by running `docker run -d devops-es`. After a few seconds, we can refresh [http://localhost:9200/_plugin/head/](http://localhost:9200/_plugin/head/) and see our new server has been assigned all the previous shards automatically!
+Let's stop all containers with `docker ps -q | xargs docker stop`. It's possible with Elasticsearch to create a "load balancer" node that doesn't store data, but is still apart of the cluster and can server HTTP requests. We can start a load balancer node by running `docker run -d -p 9200:9200 es-lb` and create the index with `bash create-elasticsearch-index.sh`. If you look at [the web interface](http://localhost:9200/_plugin/head/) you can see that no shards are assigned to the node. What's great about Elasticsearch, is that it's very easy to add another node and have our data be balanced among the servers available to the cluster. We can bring up Elasticsearch data nodes by running `docker run -d es-data`. After a few seconds, we can refresh [http://localhost:9200/_plugin/head/](http://localhost:9200/_plugin/head/) and all the shards have been assigned.!
 
 ![All shards assigned](./images/elasticsearch-all-shards-assigned.png?raw=true)
 
-If we run `docker run -d devops-es` two more times, you can see how all the shards balance out.
+If we run `docker run -d es-data` two more times, you can see how all the shards balance out.
 
 ![Four nodes running](./images/elasticsearch-four-nodes-running.png?raw=true)
 
